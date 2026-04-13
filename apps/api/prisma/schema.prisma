@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum PartCategory {
+  switch
+  housing
+  plate
+}
+
+enum SwitchType {
+  LINEAR
+  TACTILE
+  CLICKY
+}
+
+model Part {
+  id           String       @id @default(cuid())
+  category     PartCategory
+  name         String
+  manufacturer String
+  imageUrl     String?
+  priceKrw     Int?
+  createdAt    DateTime     @default(now())
+
+  switch  Switch?
+  housing Housing?
+  plate   Plate?
+  tags    PartTag[]
+
+  @@index([category])
+  @@index([manufacturer])
+}
+
+model Switch {
+  partId       String     @id
+  type         SwitchType
+  actuationG   Float
+  bottomG      Float
+  topMat       String
+  bottomMat    String
+  stemMat      String
+  factoryLubed Boolean    @default(false)
+
+  part Part @relation(fields: [partId], references: [id], onDelete: Cascade)
+
+  @@index([type])
+  @@index([actuationG])
+}
+
+model Housing {
+  partId    String  @id
+  layoutPct Float
+  material  String
+  mount     String
+  tiltDeg   Float
+  weightG   Int
+
+  part Part @relation(fields: [partId], references: [id], onDelete: Cascade)
+}
+
+model Plate {
+  partId   String  @id
+  material String
+  flexCut  Boolean @default(false)
+
+  part Part @relation(fields: [partId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id    String    @id @default(cuid())
+  kind  String
+  value String
+  parts PartTag[]
+
+  @@unique([kind, value])
+}
+
+model PartTag {
+  partId String
+  tagId  String
+
+  part Part @relation(fields: [partId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([partId, tagId])
+  @@index([tagId])
+}
