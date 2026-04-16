@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { useGuideStore, type GuideLevel } from '@/store/useGuideStore';
@@ -24,6 +25,31 @@ const menuCategories: {
   { label: '키캡', to: '/explore', emoji: '⌨️', countCategory: null },
   { label: '기타장비', to: '/explore', emoji: '🧰', countCategory: null },
 ];
+
+const HERO_SLIDE_MS = 5000;
+
+const heroBannerSlides = [
+  {
+    src: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&w=1400&q=85',
+    alt: '기계식 키보드 클로즈업',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1618389483223-18f647bd0710?auto=format&w=1400&q=85',
+    alt: '데스크 위 키보드',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1595225476474-87563907a212?auto=format&w=1400&q=85',
+    alt: '키캡 디테일',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1541140532154-b0243e1bbde9?auto=format&w=1400&q=85',
+    alt: '커스텀 키보드',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1511467687858-23d96c32e343?auto=format&w=1400&q=85',
+    alt: '작업 공간과 키보드',
+  },
+] as const;
 
 const keyboardFlowSteps = [
   '자신의 취향을 선택해주세요',
@@ -86,6 +112,14 @@ export function Landing() {
   const navigate = useNavigate();
   const setLevel = useGuideStore((s) => s.setLevel);
   const current = useGuideStore((s) => s.level);
+  const [heroSlide, setHeroSlide] = useState(0);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setHeroSlide((i) => (i + 1) % heroBannerSlides.length);
+    }, HERO_SLIDE_MS);
+    return () => window.clearInterval(id);
+  }, []);
 
   const { data: popularParts } = useQuery({
     queryKey: ['parts', 'popular'],
@@ -124,18 +158,34 @@ export function Landing() {
         <title>SwitchBook - 나만의 키보드, 책처럼 펼쳐보세요</title>
       </Helmet>
 
-      <section className="bg-[#f3f5f4] pb-16">
-        <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-[30px] bg-gradient-to-r from-[#d7efe3] via-[#e8f7ee] to-[#d7efe3] p-7 shadow-lg shadow-slate-200/60 sm:p-10">
+      <section className="relative overflow-hidden pb-16">
+        {/* 초록 박스 바깥(전체 히어로 영역) 배경 슬라이드 */}
+        <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
+          {heroBannerSlides.map((slide, index) => (
+            <img
+              key={slide.src}
+              src={slide.src}
+              alt=""
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-in-out ${
+                index === heroSlide ? 'opacity-100' : 'opacity-0'
+              }`}
+              loading={index === 0 ? 'eager' : 'lazy'}
+            />
+          ))}
+          <div className="absolute inset-0 bg-white/35" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+          <div className="overflow-hidden rounded-[30px] border border-emerald-400/90 bg-gradient-to-br from-emerald-100/88 via-emerald-50/82 to-teal-100/85 p-7 shadow-xl shadow-black/[0.08] backdrop-blur-md backdrop-saturate-150 sm:p-10">
             <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
               <div>
                 <h1 className="text-3xl font-bold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
-                  The high quality printing
+                  나만의 키보드,
                   <br />
-                  made for your own style
+                  책처럼 펼쳐보세요
                 </h1>
                 <p className="mt-4 max-w-xl text-sm text-gray-600 sm:text-base">
-                  사진 시안과 같은 구조로 메인 상단을 재정렬했습니다. 첫 진입에서 핵심 CTA와 추천 영역이 바로 보입니다.
+                  스위치부터 키캡까지, 취향에 맞는 부품을 골라 세상에 하나뿐인 키보드를 만들어보세요.
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3">
                   <Link
