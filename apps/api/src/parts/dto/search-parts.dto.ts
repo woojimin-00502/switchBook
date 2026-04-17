@@ -1,14 +1,16 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
-import { PartCategory, SwitchType } from '@prisma/client';
+import { IsIn, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+
+export type PartCategory = 'switch' | 'housing' | 'plate';
+export type SwitchType = 'LINEAR' | 'TACTILE' | 'CLICKY';
 
 export class SearchPartsDto {
   @IsOptional()
-  @IsEnum(PartCategory)
+  @IsIn(['switch', 'housing', 'plate'])
   category?: PartCategory;
 
   @IsOptional()
-  @IsEnum(SwitchType)
+  @IsIn(['LINEAR', 'TACTILE', 'CLICKY'])
   type?: SwitchType;
 
   @IsOptional()

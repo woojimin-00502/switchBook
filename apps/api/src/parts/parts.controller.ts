@@ -1,7 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { PartCategory } from '@prisma/client';
 import { PartsService } from './parts.service';
-import { SearchPartsDto } from './dto/search-parts.dto';
+import { SearchPartsDto, type PartCategory } from './dto/search-parts.dto';
 
 @Controller('parts')
 export class PartsController {

@@ -1,14 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, PartCategory } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { SearchPartsDto } from './dto/search-parts.dto';
+import { SearchPartsDto, type PartCategory } from './dto/search-parts.dto';
 
 @Injectable()
 export class PartsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async search(dto: SearchPartsDto) {
-    const where: Prisma.PartWhereInput = {};
+    const where: Record<string, unknown> = {};
     if (dto.category) where.category = dto.category;
 
     if (dto.type || dto.minG != null || dto.maxG != null) {
@@ -33,9 +32,9 @@ export class PartsService {
 
     const skip = (dto.page - 1) * dto.limit;
     const [total, rows] = await this.prisma.$transaction([
-      this.prisma.part.count({ where }),
+      this.prisma.part.count({ where: where as any }),
       this.prisma.part.findMany({
-        where,
+        where: where as any,
         skip,
         take: dto.limit,
         orderBy: { createdAt: 'desc' },
@@ -47,21 +46,21 @@ export class PartsService {
       total,
       page: dto.page,
       limit: dto.limit,
-      data: rows.map((r) => ({
+      data: rows.map((r: any) => ({
         id: r.id,
         category: r.category,
         name: r.name,
         manufacturer: r.manufacturer,
         imageUrl: r.imageUrl,
         priceKrw: r.priceKrw,
-        tags: r.tags.map((t) => ({ kind: t.tag.kind, value: t.tag.value })),
+        tags: r.tags.map((t: any) => ({ kind: t.tag.kind, value: t.tag.value })),
       })),
     };
   }
 
   async getOne(category: PartCategory, id: string) {
     const part = await this.prisma.part.findFirst({
-      where: { id, category },
+      where: { id, category: category as any },
       include: {
         switch: true,
         housing: true,
@@ -78,12 +77,12 @@ export class PartsService {
       manufacturer: part.manufacturer,
       imageUrl: part.imageUrl,
       priceKrw: part.priceKrw,
-      tags: part.tags.map((t) => ({ kind: t.tag.kind, value: t.tag.value })),
+      tags: (part as any).tags.map((t: any) => ({ kind: t.tag.kind, value: t.tag.value })),
     };
 
-    if (category === 'switch' && part.switch) return { ...base, ...part.switch };
-    if (category === 'housing' && part.housing) return { ...base, ...part.housing };
-    if (category === 'plate' && part.plate) return { ...base, ...part.plate };
+    if (category === 'switch' && (part as any).switch) return { ...base, ...(part as any).switch };
+    if (category === 'housing' && (part as any).housing) return { ...base, ...(part as any).housing };
+    if (category === 'plate' && (part as any).plate) return { ...base, ...(part as any).plate };
     return base;
   }
 }
